@@ -173,6 +173,10 @@ class FormatCustomer
 
             $this->setFormatedPhone($address);
             $this->saveAddress($address, $customerId, $email);
+
+            $customer->setDefaultBilling($address->getId());
+            $customer->setDefaultShipping($address->getId());
+            $customer->save();
         }
     }
 
