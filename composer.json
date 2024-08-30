@@ -1,0 +1,21 @@
+{
+    "name": "o2ti/brazilian-customer",
+    "description": "Formata os clientes para o padrão Brasileiro",
+    "config": {
+        "sort-packages": true
+    },
+    "require": {
+        "magento/framework": "*",
+        "magento/data-migration-tool": "*"
+    },
+    "type": "magento2-module",
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "O2TI\\BrazilianCustomer\\": ""
+        }
+    },
+    "version": "1.0.0"
+}
