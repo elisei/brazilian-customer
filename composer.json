@@ -5,8 +5,7 @@
         "sort-packages": true
     },
     "require": {
-        "magento/framework": "*",
-        "magento/data-migration-tool": "*"
+        "magento/framework": "*"
     },
     "type": "magento2-module",
     "autoload": {
