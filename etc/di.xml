@@ -14,6 +14,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="brazilian_format" xsi:type="object">O2TI\BrazilianCustomer\Console\Command\BrazilianFormatAddress</item>
+                <item name="sanitize_consumers" xsi:type="object">O2TI\BrazilianCustomer\Console\Command\SanitizeConsumers</item>
             </argument>
         </arguments>
     </type>
