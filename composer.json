@@ -15,6 +15,5 @@
         "psr-4": {
             "O2TI\\BrazilianCustomer\\": ""
         }
-    },
-    "version": "1.0.0"
+    }
 }
