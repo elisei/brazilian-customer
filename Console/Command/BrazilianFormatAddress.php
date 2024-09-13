@@ -14,6 +14,7 @@ use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerC
 use O2TI\BrazilianCustomer\Model\FormatCustomer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\ProgressBarFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -32,18 +33,26 @@ class BrazilianFormatAddress extends Command
     protected $formatCustomer;
 
     /**
+     * @var ProgressBarFactory
+     */
+    private $progressBarFactory;
+
+    /**
      * Construct.
      *
      * @param CustomerCollectionFactory $customerFactory
      * @param FormatCustomer $formatCustomer
+     * @param ProgressBarFactory $progressBarFactory
      */
     public function __construct(
         CustomerCollectionFactory $customerFactory,
-        FormatCustomer $formatCustomer
+        FormatCustomer $formatCustomer,
+        ProgressBarFactory $progressBarFactory
     ) {
         parent::__construct();
         $this->customerFactory = $customerFactory;
         $this->formatCustomer = $formatCustomer;
+        $this->progressBarFactory = $progressBarFactory;
     }
 
     /**
@@ -64,21 +73,29 @@ class BrazilianFormatAddress extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $customerCollection = $this->customerFactory->create();
-        $totalCustomers = $customerCollection->getSize();
         
         $output->writeln('<info>' .__('Iniciando o processo de formatação de endereços...') .'</info>');
-        $progressBar = new ProgressBar($output, $totalCustomers);
-        $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% | Client: %message%');
-        $progressBar->start();
+
+        /** @var ProgressBar $progress */
+        $progress = $this->progressBarFactory->create(
+            [
+                'output' => $output,
+                'max' => $customerCollection->getSize()
+            ]
+        );
+
+        $progress->setFormat(
+            "%current%/%max% [%bar%] %percent:3s%% %elapsed% %memory:6s% \t| <info>%message%</info>"
+        );
 
         foreach ($customerCollection as $customer) {
-            $progressBar->setMessage($customer->getEmail());
+            $progress->setMessage($customer->getEmail());
             $this->formatCustomer->processCustomer($customer);
-            $progressBar->advance();
+            $progress->advance();
         }
 
-        $progressBar->finish();
-        $output->writeln('');
+        $progress->finish();
+        $output->write(PHP_EOL);
         $output->writeln('<info>'.__('Processo concluído com sucesso!').'</info>');
 
         return Command::SUCCESS;

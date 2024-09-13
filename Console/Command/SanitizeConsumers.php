@@ -15,6 +15,7 @@ use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerC
 use O2TI\BrazilianCustomer\Model\SanitizeConsumer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\ProgressBarFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -33,18 +34,26 @@ class SanitizeConsumers extends Command
     protected $sanitize;
 
     /**
+     * @var ProgressBarFactory
+     */
+    private $progressBarFactory;
+
+    /**
      * Construct.
      *
      * @param CustomerCollectionFactory $customerFactory
      * @param SanitizeConsumer $sanitize
+     * @param ProgressBarFactory $progressBarFactory
      */
     public function __construct(
         CustomerCollectionFactory $customerFactory,
-        SanitizeConsumer $sanitize
+        SanitizeConsumer $sanitize,
+        ProgressBarFactory $progressBarFactory
     ) {
         parent::__construct();
         $this->customerFactory = $customerFactory;
         $this->sanitize = $sanitize;
+        $this->progressBarFactory = $progressBarFactory;
     }
 
     /**
@@ -72,22 +81,30 @@ class SanitizeConsumers extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $customerCollection = $this->customerFactory->create();
-        $totalCustomers = $customerCollection->getSize();
+        $deleteOption = $input->getOption('delete');
         
         $output->writeln('<info>' .__('Iniciando o processo de limpeza dos cadastros...') .'</info>');
-        $progressBar = new ProgressBar($output, $totalCustomers);
-        $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% | Client: %message%');
-        $progressBar->start();
-        $deleteOption = $input->getOption('delete');
+
+        /** @var ProgressBar $progress */
+        $progress = $this->progressBarFactory->create(
+            [
+                'output' => $output,
+                'max' => $customerCollection->getSize()
+            ]
+        );
+
+        $progress->setFormat(
+            "%current%/%max% [%bar%] %percent:3s%% %elapsed% %memory:6s% \t| <info>%message%</info>"
+        );
 
         foreach ($customerCollection as $customer) {
-            $progressBar->setMessage($customer->getEmail());
+            $progress->setMessage($customer->getEmail());
             $this->sanitize->processCustomer($customer, $deleteOption);
-            $progressBar->advance();
+            $progress->advance();
         }
 
-        $progressBar->finish();
-        $output->writeln('');
+        $progress->finish();
+        $output->write(PHP_EOL);
         $output->writeln('<info>'.__('Processo concluído com sucesso!').'</info>');
 
         return Command::SUCCESS;
